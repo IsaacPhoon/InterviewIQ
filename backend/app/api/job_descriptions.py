@@ -75,7 +75,7 @@ async def create_job_description(
                 db.add(question)
 
             # Update status to success
-            job_description.status = JobDescriptionStatus.QUESTIONS_GENERATED
+            job_description.status = JobDescriptionStatus.QUESTIONS_GENERATED  # type: ignore
             db.commit()
             db.refresh(job_description)
 
@@ -85,8 +85,8 @@ async def create_job_description(
 
         except Exception as e:
             # Update status to error
-            job_description.status = JobDescriptionStatus.ERROR
-            job_description.error_message = str(e)
+            job_description.status = JobDescriptionStatus.ERROR  # type: ignore
+            job_description.error_message = str(e)  # type: ignore
             db.commit()
             db.refresh(job_description)
 
