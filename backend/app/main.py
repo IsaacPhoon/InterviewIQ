@@ -45,7 +45,7 @@ app.include_router(responses.router)
 def root():
     """Root endpoint."""
     return {
-        "message": "AI Interview Prep Coach API",
+        "message": "InterviewIQ API",
         "version": settings.app_version,
         "docs": "/docs"
     }

@@ -29,7 +29,7 @@ export const Dashboard: React.FC = () => {
       <nav className="bg-white dark:bg-gray-800 shadow">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            AI Interview Prep Coach
+            InterviewIQ
           </h1>
           <button onClick={logout} className="btn btn-secondary">
             Logout
