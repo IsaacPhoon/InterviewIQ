@@ -53,8 +53,8 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
         stream.getTracks().forEach((track) => track.stop());
       };
 
-      // Start recording
-      mediaRecorder.start();
+      // Start recording with timeslice to ensure data is captured
+      mediaRecorder.start(100); // Request data every 100ms
       setIsRecording(true);
     } catch (err) {
       console.error('Error starting recording:', err);
