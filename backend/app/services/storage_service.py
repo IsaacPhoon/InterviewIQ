@@ -110,9 +110,10 @@ class StorageService:
             unique_filename = f"{uuid.uuid4()}{file_ext}"
             file_path = self.audio_dir / unique_filename
 
-            # Save file
+            # Save file - read synchronously from SpooledTemporaryFile
             async with aiofiles.open(file_path, 'wb') as f:
-                content = await file.read()
+                # Read content synchronously (not async) from the file object
+                content = file.read()
                 await f.write(content)
 
             logger.info(f"Audio saved to: {file_path}")

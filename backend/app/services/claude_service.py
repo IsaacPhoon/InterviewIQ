@@ -177,36 +177,56 @@ For each category, provide:
 - A score from 1 to 10
 - Concise, actionable feedback (2-3 sentences)
 
-Also provide an overall comment summarizing the response quality and key areas for improvement."""
+Also provide an overall comment summarizing the response quality and key areas for improvement.
+
+IMPORTANT: Return ONLY a valid JSON object with this exact structure (no markdown, no code blocks):
+{{
+  "scores": {{
+    "confidence": <number 1-10>,
+    "clarity_structure": <number 1-10>,
+    "technical_depth": <number 1-10>,
+    "communication_skills": <number 1-10>,
+    "relevance": <number 1-10>
+  }},
+  "feedback": {{
+    "confidence": "<feedback text>",
+    "clarity_structure": "<feedback text>",
+    "technical_depth": "<feedback text>",
+    "communication_skills": "<feedback text>",
+    "relevance": "<feedback text>"
+  }},
+  "overall_comment": "<overall comment text>"
+}}"""
 
         try:
             response = self.client.messages.create(
                 model=self.model,
                 max_tokens=3000,
-                extra_headers={
-                    "anthropic-beta": "structured-outputs-2025-11-13"
-                },
                 messages=[
                     {"role": "user", "content": prompt}
-                ],
-                output_format={
-                    "type": "json_schema",
-                    "json_schema": {
-                        "name": "interview_evaluation",
-                        "schema": schema
-                    }
-                }
+                ]
             )
 
-            # Extract and parse the structured JSON response
+            # Extract and parse the JSON response
             evaluation_text = response.content[0].text.strip()
+            
+            # Remove markdown code blocks if present
+            if evaluation_text.startswith("```"):
+                evaluation_text = evaluation_text.replace("```json", "").replace("```", "").strip()
+            
             evaluation = json.loads(evaluation_text)
+
+            # Validate the structure
+            if "scores" not in evaluation or "feedback" not in evaluation:
+                logger.error(f"Invalid evaluation structure: {evaluation}")
+                raise ValueError("Claude did not return proper evaluation structure")
 
             logger.info("Successfully evaluated response with Claude")
             return evaluation
 
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse Claude evaluation as JSON: {e}")
+            logger.error(f"Raw response: {evaluation_text}")
             raise Exception("Failed to parse evaluation from Claude response")
         except Exception as e:
             logger.error(f"Claude API error during response evaluation: {e}")
