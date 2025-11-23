@@ -1,7 +1,7 @@
 """Question model."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import Base
 from sqlalchemy import Column, DateTime, ForeignKey, Text
@@ -24,7 +24,7 @@ class Question(Base):
         UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False
     )
     question_text = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relationships
     job_description = relationship('JobDescription', back_populates='questions')

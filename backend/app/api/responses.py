@@ -164,14 +164,14 @@ async def submit_response(
         )
 
 
-@router.get('/{question_id}/responses', response_model=List[ResponseListItem])
+@router.get('/{question_id}/responses', response_model=List[ResponseResponse])
 def list_responses(
     question_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    List all responses for a specific question.
+    List all responses for a specific question with full details.
 
     Args:
         question_id: ID of the question
@@ -179,7 +179,7 @@ def list_responses(
         db: Database session
 
     Returns:
-        List of responses with scores
+        List of responses with full details (transcript, scores, feedback)
 
     Raises:
         HTTPException: If question not found or unauthorized
@@ -205,15 +205,20 @@ def list_responses(
         .all()
     )
 
-    # Format response
+    # Format response with full details
     result = []
     for response, score in responses:
-        scores_data = score.scores_json.get('scores', {})
+        evaluation = score.scores_json
+        scores_data = evaluation.get('scores', {})
+        feedback_data = evaluation.get('feedback', {})
         result.append(
             {
                 'response_id': response.id,
-                'created_at': response.created_at,
+                'transcript': response.transcript,
                 'scores': ScoresResponse(**scores_data),
+                'feedback': FeedbackResponse(**feedback_data),
+                'overall_comment': evaluation.get('overall_comment'),
+                'created_at': response.created_at,
             }
         )
 

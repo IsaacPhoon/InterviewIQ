@@ -3,6 +3,7 @@
 import json
 from typing import Optional
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,7 +16,15 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # Database
-    database_url: str
+    database_url_raw: str = Field(alias='DATABASE_URL')
+
+    @property
+    def database_url(self) -> str:
+        """Get database URL, converting postgres:// to postgresql:// for Heroku compatibility."""
+        url = self.database_url_raw
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql://", 1)
+        return url
 
     # Security
     jwt_secret: str
@@ -55,7 +64,10 @@ class Settings(BaseSettings):
         return self.cors_origins
 
     model_config = SettingsConfigDict(
-        env_file='.env', env_file_encoding='utf-8', case_sensitive=False
+        env_file='.env',
+        env_file_encoding='utf-8',
+        case_sensitive=False,
+        populate_by_name=True
     )
 
 

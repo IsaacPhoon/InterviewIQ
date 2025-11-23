@@ -2,7 +2,7 @@
 
 import enum
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import Base
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text
@@ -42,7 +42,7 @@ class JobDescription(Base):
         nullable=False,
     )
     error_message = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relationships
     user = relationship('User', back_populates='job_descriptions')

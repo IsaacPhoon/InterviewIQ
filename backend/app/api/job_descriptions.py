@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.job_description import JobDescription, JobDescriptionStatus
 from app.models.question import Question
+from app.models.response import Response
 from app.models.user import User
 from app.schemas.job_description import (
     JobDescriptionCreate,
@@ -107,14 +108,14 @@ def list_job_descriptions(
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """
-    List all job descriptions for the authenticated user.
+    List all job descriptions for the authenticated user with progress info.
 
     Args:
         current_user: Authenticated user
         db: Database session
 
     Returns:
-        List of user's job descriptions
+        List of user's job descriptions with progress tracking
     """
     job_descriptions = (
         db.query(JobDescription)
@@ -123,7 +124,38 @@ def list_job_descriptions(
         .all()
     )
 
-    return job_descriptions
+    # Build response with progress information
+    result = []
+    for jd in job_descriptions:
+        # Count total questions for this job description
+        total_questions = (
+            db.query(Question)
+            .filter(Question.job_description_id == jd.id)
+            .count()
+        )
+
+        # Count questions that have at least one response
+        answered_questions = (
+            db.query(Question.id)
+            .filter(Question.job_description_id == jd.id)
+            .join(Response, Response.question_id == Question.id)
+            .distinct()
+            .count()
+        )
+
+        result.append(
+            JobDescriptionListResponse(
+                id=jd.id,
+                company_name=jd.company_name,
+                job_title=jd.job_title,
+                status=jd.status.value,
+                created_at=jd.created_at,
+                total_questions=total_questions,
+                answered_questions=answered_questions,
+            )
+        )
+
+    return result
 
 
 @router.get('/{job_description_id}/questions', response_model=List[QuestionResponse])
@@ -133,7 +165,7 @@ def get_questions(
     db: Session = Depends(get_db),
 ):
     """
-    Get all questions for a specific job description.
+    Get all questions for a specific job description with response tracking.
 
     Args:
         job_description_id: ID of the job description
@@ -141,7 +173,7 @@ def get_questions(
         db: Database session
 
     Returns:
-        List of questions
+        List of questions with attempt counts
 
     Raises:
         HTTPException: If job description not found or unauthorized
@@ -161,11 +193,31 @@ def get_questions(
             status_code=status.HTTP_404_NOT_FOUND, detail='Job description not found'
         )
 
-    # Get questions
+    # Get questions with response counts
     questions = (
         db.query(Question)
         .filter(Question.job_description_id == job_description_id)
         .all()
     )
 
-    return questions
+    # Build response with attempt counts
+    result = []
+    for question in questions:
+        # Count responses for this question
+        attempts_count = (
+            db.query(Response)
+            .filter(Response.question_id == question.id)
+            .count()
+        )
+
+        result.append(
+            QuestionResponse(
+                id=question.id,
+                job_description_id=question.job_description_id,
+                question_text=question.question_text,
+                created_at=question.created_at,
+                attempts_count=attempts_count,
+            )
+        )
+
+    return result

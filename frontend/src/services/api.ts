@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Token, JobDescription, Question, Response, ResponseListItem } from '@/types';
+import type { Token, JobDescription, Question, Response } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -68,8 +68,8 @@ export const responsesAPI = {
     return response.data;
   },
 
-  list: async (questionId: string): Promise<ResponseListItem[]> => {
-    const response = await api.get<ResponseListItem[]>(`/api/questions/${questionId}/responses`);
+  list: async (questionId: string): Promise<Response[]> => {
+    const response = await api.get<Response[]>(`/api/questions/${questionId}/responses`);
     return response.data;
   },
 };

@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useParams, useRouter } from 'next/navigation';
-import { responsesAPI } from '@/services/api';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
+import { responsesAPI } from "@/services/api";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { formatDateTime } from "@/utils/dateFormatter";
 
 function HistoryContent() {
   const params = useParams();
@@ -12,7 +13,7 @@ function HistoryContent() {
   const router = useRouter();
 
   const { data: responses, isLoading } = useQuery({
-    queryKey: ['responses', questionId],
+    queryKey: ["responses", questionId],
     queryFn: () => responsesAPI.list(questionId!),
     enabled: !!questionId,
   });
@@ -30,7 +31,7 @@ function HistoryContent() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push("/dashboard")}
             className="text-primary-600 hover:text-primary-500 dark:text-primary-400 mb-4"
           >
             ← Back to Dashboard
@@ -52,7 +53,7 @@ function HistoryContent() {
               <div key={response.response_id} className="card">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Attempt from {new Date(response.created_at).toLocaleString()}
+                    Attempt from {formatDateTime(response.created_at)}
                   </h3>
                 </div>
 
@@ -63,7 +64,7 @@ function HistoryContent() {
                         {value}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400 capitalize">
-                        {key.replace('_', ' ')}
+                        {key.replace("_", " ")}
                       </div>
                     </div>
                   ))}

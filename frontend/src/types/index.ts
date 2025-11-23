@@ -17,6 +17,8 @@ export interface JobDescription {
   status: 'pending' | 'questions_generated' | 'error';
   error_message?: string;
   created_at: string;
+  total_questions?: number;
+  answered_questions?: number;
 }
 
 export interface Question {

@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 
 interface UseAudioRecorderReturn {
   isRecording: boolean;
+  isInitializing: boolean;
   audioBlob: Blob | null;
   audioURL: string | null;
   startRecording: () => Promise<void>;
@@ -12,6 +13,7 @@ interface UseAudioRecorderReturn {
 
 export const useAudioRecorder = (): UseAudioRecorderReturn => {
   const [isRecording, setIsRecording] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioURL, setAudioURL] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +24,7 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
   const startRecording = useCallback(async () => {
     try {
       setError(null);
+      setIsInitializing(true);
 
       // Request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -34,6 +37,12 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
+      // Handle start event - only set isRecording after actual start
+      mediaRecorder.onstart = () => {
+        setIsInitializing(false);
+        setIsRecording(true);
+      };
+
       // Handle data available event
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -44,7 +53,7 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
       // Handle stop event
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        
+
         // Create URL after a small delay to ensure blob is fully formed
         setTimeout(() => {
           const url = URL.createObjectURL(blob);
@@ -58,10 +67,10 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
 
       // Start recording with timeslice to ensure data is captured
       mediaRecorder.start(100); // Request data every 100ms
-      setIsRecording(true);
     } catch (err) {
       console.error('Error starting recording:', err);
       setError('Failed to access microphone. Please ensure microphone permissions are granted.');
+      setIsInitializing(false);
     }
   }, []);
 
@@ -83,6 +92,7 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
 
   return {
     isRecording,
+    isInitializing,
     audioBlob,
     audioURL,
     startRecording,

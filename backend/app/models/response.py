@@ -1,7 +1,7 @@
 """Response model."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import Base
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text
@@ -25,7 +25,7 @@ class Response(Base):
     )
     audio_path = Column(String, nullable=False)
     transcript = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relationships
     question = relationship('Question', back_populates='responses')

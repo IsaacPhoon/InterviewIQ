@@ -37,6 +37,8 @@ class JobDescriptionListResponse(BaseModel):
     job_title: str
     status: str
     created_at: datetime
+    total_questions: int = 0
+    answered_questions: int = 0
 
     class Config:
         from_attributes = True
