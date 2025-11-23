@@ -321,64 +321,106 @@ function PracticeContent() {
         {/* Evaluation Results */}
         {evaluation && (
           <div className="space-y-6">
+            {/* Transcript Section */}
             <div className="card">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                Your Response
-              </h3>
-              <p className="text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 p-4 rounded">
-                {evaluation.transcript}
-              </p>
+              <div className="flex items-start gap-3 mb-4">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Your Response
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Transcribed from audio</p>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed pl-4 italic">
+                  "{evaluation.transcript}"
+                </p>
+              </div>
             </div>
 
-            <div className="card">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                Evaluation Scores
-              </h3>
-              <div className="space-y-4">
-                {Object.entries(evaluation.scores).map(([key, value]) => (
-                  <div key={key}>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-gray-700 dark:text-gray-300 capitalize">
-                        {key.replace("_", " ")}
-                      </span>
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {value}/10
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-primary-600 h-2 rounded-full"
-                        style={{ width: `${(value / 10) * 100}%` }}
-                      />
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                      {
-                        evaluation.feedback[
-                          key as keyof typeof evaluation.feedback
-                        ]
-                      }
+            {/* Overall Summary Card */}
+            {evaluation.overall_comment && (
+              <div className="card bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                      Overall Assessment
+                    </h4>
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {evaluation.overall_comment}
                     </p>
                   </div>
-                ))}
-              </div>
-              {evaluation.overall_comment && (
-                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded">
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                    Overall Feedback
-                  </h4>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    {evaluation.overall_comment}
-                  </p>
                 </div>
-              )}
+              </div>
+            )}
+
+            {/* Scores Grid */}
+            <div className="card">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                Performance Breakdown
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {Object.entries(evaluation.scores).map(([key, value]) => {
+                  const percentage = (value / 10) * 100;
+                  const getScoreColor = (score: number) => {
+                    if (score >= 8) return { bg: 'bg-green-500', text: 'text-green-600 dark:text-green-400', ring: 'ring-green-100 dark:ring-green-900' };
+                    if (score >= 6) return { bg: 'bg-blue-500', text: 'text-blue-600 dark:text-blue-400', ring: 'ring-blue-100 dark:ring-blue-900' };
+                    if (score >= 4) return { bg: 'bg-yellow-500', text: 'text-yellow-600 dark:text-yellow-400', ring: 'ring-yellow-100 dark:ring-yellow-900' };
+                    return { bg: 'bg-red-500', text: 'text-red-600 dark:text-red-400', ring: 'ring-red-100 dark:ring-red-900' };
+                  };
+                  const colors = getScoreColor(value);
+
+                  return (
+                    <div key={key} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-900 dark:text-white capitalize">
+                          {key.replace(/_/g, " ")}
+                        </span>
+                        <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${colors.ring} ring-2`}>
+                          <span className={`text-sm font-bold ${colors.text}`}>
+                            {value}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">/10</span>
+                        </div>
+                      </div>
+                      <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className={`absolute top-0 left-0 h-full ${colors.bg} rounded-full transition-all duration-500 ease-out`}
+                          style={{ width: `${percentage}%` }}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/20"></div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {evaluation.feedback[key as keyof typeof evaluation.feedback]}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
+            {/* Action Buttons */}
             <div className="flex gap-4">
               {isViewingHistory && (
                 <button
                   onClick={handleTryAgain}
                   className="btn btn-secondary flex-1"
                 >
+                  <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
                   Try Again
                 </button>
               )}
@@ -389,6 +431,9 @@ function PracticeContent() {
                 {currentQuestionIndex < questions.length - 1
                   ? "Next Question"
                   : "Back to Dashboard"}
+                <svg className="w-4 h-4 inline-block ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
               </button>
             </div>
           </div>
