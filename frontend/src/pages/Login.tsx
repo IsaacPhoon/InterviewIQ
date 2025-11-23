@@ -225,6 +225,7 @@ export const Login: React.FC = () => {
             className="max-w-2xl w-full space-y-8 relative z-10"
           >
             <motion.div
+              layoutId="auth-card"
               className="card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl p-12 rounded-2xl"
               whileHover={{ scale: 1.01 }}
               transition={{ type: "spring", stiffness: 300 }}
