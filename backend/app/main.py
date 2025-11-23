@@ -22,13 +22,17 @@ app = FastAPI(
     debug=settings.debug
 )
 
-# Configure CORS
+# Configure CORS - must be added before other middleware
+cors_origins = settings.cors_origins_list
+logger.info(f"Configuring CORS with origins: {cors_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Include routers

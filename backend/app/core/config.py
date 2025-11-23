@@ -1,6 +1,7 @@
 """Application configuration using Pydantic settings."""
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
+import json
 
 
 class Settings(BaseSettings):
@@ -34,7 +35,17 @@ class Settings(BaseSettings):
     whisper_device: str = "cpu"  # or "cuda" for GPU
 
     # CORS
-    cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+    cors_origins: str = '["http://localhost:5173", "http://localhost:3000"]'
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Parse CORS origins from JSON string to list."""
+        if isinstance(self.cors_origins, str):
+            try:
+                return json.loads(self.cors_origins)
+            except json.JSONDecodeError:
+                return ["http://localhost:5173", "http://localhost:3000"]
+        return self.cors_origins
 
     model_config = SettingsConfigDict(
         env_file=".env",
