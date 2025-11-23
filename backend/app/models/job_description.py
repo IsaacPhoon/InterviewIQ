@@ -25,8 +25,8 @@ class JobDescription(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     company_name = Column(String, nullable=False)
     job_title = Column(String, nullable=False)
-    file_path = Column(String, nullable=False)
-    extracted_text = Column(Text, nullable=True)
+    file_path = Column(String, nullable=True)  # Now optional - for backward compatibility
+    extracted_text = Column(Text, nullable=False)  # Now required - stores job description text
     status = Column(SQLEnum(JobDescriptionStatus), default=JobDescriptionStatus.PENDING, nullable=False)
     error_message = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

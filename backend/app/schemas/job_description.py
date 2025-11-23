@@ -8,6 +8,7 @@ class JobDescriptionCreate(BaseModel):
     """Schema for creating a job description."""
     company_name: str
     job_title: str
+    description_text: str  # New field for text input
 
 
 class JobDescriptionResponse(BaseModel):
