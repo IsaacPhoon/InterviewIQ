@@ -1,11 +1,15 @@
+'use client';
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useRouter } from 'next/navigation';
 import { responsesAPI } from '@/services/api';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 
-export const History: React.FC = () => {
-  const { questionId } = useParams<{ questionId: string }>();
-  const navigate = useNavigate();
+function HistoryContent() {
+  const params = useParams();
+  const questionId = params.questionId as string;
+  const router = useRouter();
 
   const { data: responses, isLoading } = useQuery({
     queryKey: ['responses', questionId],
@@ -26,7 +30,7 @@ export const History: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => router.push('/dashboard')}
             className="text-primary-600 hover:text-primary-500 dark:text-primary-400 mb-4"
           >
             ← Back to Dashboard
@@ -71,4 +75,12 @@ export const History: React.FC = () => {
       </div>
     </div>
   );
-};
+}
+
+export default function HistoryPage() {
+  return (
+    <ProtectedRoute>
+      <HistoryContent />
+    </ProtectedRoute>
+  );
+}

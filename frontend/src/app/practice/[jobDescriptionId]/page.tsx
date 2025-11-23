@@ -1,13 +1,17 @@
+'use client';
+
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useRouter } from "next/navigation";
 import { jobDescriptionsAPI, responsesAPI } from "@/services/api";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import type { Response as EvaluationResponse } from "@/types";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
-export const Practice: React.FC = () => {
-  const { jobDescriptionId } = useParams<{ jobDescriptionId: string }>();
-  const navigate = useNavigate();
+function PracticeContent() {
+  const params = useParams();
+  const jobDescriptionId = params.jobDescriptionId as string;
+  const router = useRouter();
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [evaluation, setEvaluation] = useState<EvaluationResponse | null>(null);
@@ -62,7 +66,7 @@ export const Practice: React.FC = () => {
       setEvaluation(null);
       clearRecording();
     } else {
-      navigate("/dashboard");
+      router.push("/dashboard");
     }
   };
 
@@ -80,7 +84,7 @@ export const Practice: React.FC = () => {
         <div className="text-center">
           <p className="mb-4">No questions found</p>
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => router.push("/dashboard")}
             className="btn btn-primary"
           >
             Back to Dashboard
@@ -98,7 +102,7 @@ export const Practice: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => router.push("/dashboard")}
             className="text-primary-600 hover:text-primary-500 dark:text-primary-400 mb-4"
           >
             ← Back to Dashboard
@@ -267,4 +271,12 @@ export const Practice: React.FC = () => {
       </div>
     </div>
   );
-};
+}
+
+export default function PracticePage() {
+  return (
+    <ProtectedRoute>
+      <PracticeContent />
+    </ProtectedRoute>
+  );
+}

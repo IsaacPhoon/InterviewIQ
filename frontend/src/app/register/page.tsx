@@ -1,10 +1,13 @@
+'use client';
+
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { AuthBackground } from "@/components/AuthBackground";
 
-export const Register: React.FC = () => {
+export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -12,7 +15,7 @@ export const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const { register } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +35,7 @@ export const Register: React.FC = () => {
 
     try {
       await register(email, password);
-      navigate("/dashboard");
+      router.push("/dashboard");
     } catch (err: any) {
       setError(
         err.response?.data?.detail || "Registration failed. Please try again."
@@ -177,7 +180,7 @@ export const Register: React.FC = () => {
 
             <motion.div variants={itemVariants} className="text-center">
               <Link
-                to="/login"
+                href="/login"
                 className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-normal text-sm transition-colors"
               >
                 Already have an account?{" "}
@@ -191,4 +194,4 @@ export const Register: React.FC = () => {
       </motion.div>
     </div>
   );
-};
+}

@@ -1,12 +1,15 @@
+'use client';
+
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { jobDescriptionsAPI } from "@/services/api";
 import type { JobDescription } from "@/types";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
-export const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
+function DashboardContent() {
+  const router = useRouter();
   const { logout } = useAuth();
 
   const { data: jobDescriptions, isLoading } = useQuery({
@@ -44,7 +47,7 @@ export const Dashboard: React.FC = () => {
             Your Interview Prep Sessions
           </h2>
           <button
-            onClick={() => navigate("/upload")}
+            onClick={() => router.push("/upload")}
             className="btn btn-primary"
           >
             + Upload New Job Description
@@ -97,7 +100,7 @@ export const Dashboard: React.FC = () => {
 
                   {job.status === "questions_generated" && (
                     <button
-                      onClick={() => navigate(`/practice/${job.id}`)}
+                      onClick={() => router.push(`/practice/${job.id}`)}
                       className="btn btn-primary w-full"
                     >
                       Start Practice
@@ -113,7 +116,7 @@ export const Dashboard: React.FC = () => {
               No job descriptions yet. Upload one to get started!
             </p>
             <button
-              onClick={() => navigate("/upload")}
+              onClick={() => router.push("/upload")}
               className="btn btn-primary"
             >
               Upload Job Description
@@ -123,4 +126,12 @@ export const Dashboard: React.FC = () => {
       </main>
     </div>
   );
-};
+}
+
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
+  );
+}

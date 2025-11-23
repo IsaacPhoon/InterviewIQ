@@ -1,10 +1,13 @@
+'use client';
+
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { AuthBackground } from "@/components/AuthBackground";
 
-export const Login: React.FC = () => {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -13,7 +16,7 @@ export const Login: React.FC = () => {
   const [displayedText, setDisplayedText] = useState("");
 
   const { login } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const introText =
     "Your personal AI interviewer. Upload a job description, talk through real interview questions, and get instant AI-powered scoring—right in your browser.";
@@ -21,7 +24,7 @@ export const Login: React.FC = () => {
   useEffect(() => {
     let index = 0;
     const typingSpeed = 25;
-    let timeoutId: number;
+    let timeoutId: NodeJS.Timeout;
 
     const typeText = () => {
       if (index < introText.length) {
@@ -61,7 +64,7 @@ export const Login: React.FC = () => {
 
     try {
       await login(email, password);
-      navigate("/dashboard");
+      router.push("/dashboard");
     } catch (err: any) {
       setError(
         err.response?.data?.detail ||
@@ -239,10 +242,10 @@ export const Login: React.FC = () => {
 
                 <motion.div variants={itemVariants} className="text-center">
                   <Link
-                    to="/register"
+                    href="/register"
                     className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-normal text-sm transition-colors"
                   >
-                    Don't have an account?{" "}
+                    Don&apos;t have an account?{" "}
                     <span className="font-medium underline underline-offset-2">
                       Register
                     </span>
@@ -255,4 +258,4 @@ export const Login: React.FC = () => {
       </AnimatePresence>
     </div>
   );
-};
+}
