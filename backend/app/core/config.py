@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         """Get database URL, converting postgres:// to postgresql:// for Heroku compatibility."""
         _raw_database_url = os.environ.get('DATABASE_URL')
-        if _raw_database_url.startswith("postgres://"):
+        if _raw_database_url and _raw_database_url.startswith("postgres://"):
             _raw_database_url = _raw_database_url.replace("postgres://", "postgresql://", 1)
         return _raw_database_url
 
