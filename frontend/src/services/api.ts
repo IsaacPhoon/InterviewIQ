@@ -34,16 +34,11 @@ export const authAPI = {
 
 // Job Descriptions
 export const jobDescriptionsAPI = {
-  upload: async (file: File, companyName: string, jobTitle: string): Promise<JobDescription> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('company_name', companyName);
-    formData.append('job_title', jobTitle);
-
-    const response = await api.post<JobDescription>('/api/job-descriptions', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+  create: async (companyName: string, jobTitle: string, descriptionText: string): Promise<JobDescription> => {
+    const response = await api.post<JobDescription>('/api/job-descriptions', {
+      company_name: companyName,
+      job_title: jobTitle,
+      description_text: descriptionText,
     });
     return response.data;
   },

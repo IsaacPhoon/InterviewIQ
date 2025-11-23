@@ -1,7 +1,7 @@
 """Job description API endpoints."""
 import logging
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -9,9 +9,12 @@ from app.core.security import get_current_user
 from app.models.user import User
 from app.models.job_description import JobDescription, JobDescriptionStatus
 from app.models.question import Question
-from app.schemas.job_description import JobDescriptionResponse, JobDescriptionListResponse
+from app.schemas.job_description import (
+    JobDescriptionCreate,
+    JobDescriptionResponse,
+    JobDescriptionListResponse
+)
 from app.schemas.question import QuestionResponse
-from app.services.storage_service import storage_service
 from app.services.claude_service import claude_service
 
 router = APIRouter(prefix="/api/job-descriptions", tags=["Job Descriptions"])
@@ -19,20 +22,16 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("", response_model=JobDescriptionResponse, status_code=status.HTTP_201_CREATED)
-async def upload_job_description(
-    file: UploadFile = File(...),
-    company_name: str = Form(...),
-    job_title: str = Form(...),
+async def create_job_description(
+    job_data: JobDescriptionCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Upload a job description PDF and generate interview questions.
+    Create a job description with text input and generate interview questions.
 
     Args:
-        file: PDF file upload
-        company_name: Name of the company
-        job_title: Job title/position
+        job_data: Job description data including text
         current_user: Authenticated user
         db: Database session
 
@@ -40,36 +39,16 @@ async def upload_job_description(
         Created job description with status
 
     Raises:
-        HTTPException: If file is invalid or processing fails
+        HTTPException: If processing fails
     """
-    # Validate file type
-    if not file.filename.lower().endswith('.pdf'):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must be a PDF"
-        )
-
-    # Validate file size (max 10MB from settings)
-    content = await file.read()
-    await file.seek(0)  # Reset file pointer
-
-    if len(content) > 10 * 1024 * 1024:  # 10MB
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File size must be less than 10MB"
-        )
-
     try:
-        # Save PDF and extract text
-        file_path, extracted_text = await storage_service.save_pdf(file.file, file.filename)
-
-        # Create job description record
+        # Create job description record with text
         job_description = JobDescription(
             user_id=current_user.id,
-            company_name=company_name,
-            job_title=job_title,
-            file_path=file_path,
-            extracted_text=extracted_text,
+            company_name=job_data.company_name,
+            job_title=job_data.job_title,
+            file_path=None,  # No file path needed for text input
+            extracted_text=job_data.description_text,
             status=JobDescriptionStatus.PENDING
         )
 
@@ -80,9 +59,9 @@ async def upload_job_description(
         # Generate questions using Claude
         try:
             questions_list = claude_service.generate_questions(
-                extracted_text,
-                company_name,
-                job_title
+                job_data.description_text,
+                job_data.company_name,
+                job_data.job_title
             )
 
             # Save questions to database
@@ -113,7 +92,7 @@ async def upload_job_description(
         return job_description
 
     except Exception as e:
-        logger.error(f"Error uploading job description: {e}")
+        logger.error(f"Error creating job description: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to process job description"
