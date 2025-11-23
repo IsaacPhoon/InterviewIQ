@@ -52,7 +52,9 @@ Generate 5 behavioral interview questions that:
 4. Are clear and professionally worded
 5. Cover different aspects of the role
 
-Return ONLY a JSON array of 5 question strings, with no additional text or formatting. Example format:
+IMPORTANT: Return ONLY a valid JSON array of 5 question strings. Do not include any markdown formatting, code blocks, or additional text. Just the raw JSON array.
+
+Example of correct format:
 ["Question 1?", "Question 2?", "Question 3?", "Question 4?", "Question 5?"]"""
 
         try:
@@ -66,19 +68,36 @@ Return ONLY a JSON array of 5 question strings, with no additional text or forma
 
             # Extract text from response
             questions_text = response.content[0].text.strip()
+            
+            # Remove markdown code blocks if present
+            if questions_text.startswith("```"):
+                # Remove markdown code block formatting
+                questions_text = questions_text.replace("```json", "").replace("```", "").strip()
+            
+            logger.info(f"Raw Claude response: {questions_text[:200]}")
 
             # Parse JSON array
             questions = json.loads(questions_text)
 
-            if not isinstance(questions, list) or len(questions) != 5:
-                logger.error(f"Invalid questions format: {questions}")
-                raise ValueError("Claude did not return exactly 5 questions")
+            if not isinstance(questions, list):
+                logger.error(f"Response is not a list: {type(questions)}")
+                raise ValueError("Claude did not return a list of questions")
+            
+            if len(questions) != 5:
+                logger.warning(f"Expected 5 questions but got {len(questions)}, adjusting...")
+                # Take first 5 or pad with generic questions if needed
+                if len(questions) > 5:
+                    questions = questions[:5]
+                else:
+                    while len(questions) < 5:
+                        questions.append(f"Tell me about a time when you demonstrated skills relevant to this {job_title} role?")
 
             logger.info(f"Generated {len(questions)} questions for {company_name} - {job_title}")
             return questions
 
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse Claude response as JSON: {e}")
+            logger.error(f"Raw response text: {questions_text}")
             raise Exception("Failed to parse questions from Claude response")
         except Exception as e:
             logger.error(f"Claude API error during question generation: {e}")
