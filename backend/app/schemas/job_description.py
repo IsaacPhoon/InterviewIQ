@@ -1,11 +1,14 @@
 """Job description schemas."""
-from pydantic import BaseModel, UUID4
+
 from datetime import datetime
 from typing import Optional
+
+from pydantic import UUID4, BaseModel
 
 
 class JobDescriptionCreate(BaseModel):
     """Schema for creating a job description."""
+
     company_name: str
     job_title: str
     description_text: str  # New field for text input
@@ -13,6 +16,7 @@ class JobDescriptionCreate(BaseModel):
 
 class JobDescriptionResponse(BaseModel):
     """Schema for job description response."""
+
     id: UUID4
     user_id: UUID4
     company_name: str
@@ -27,6 +31,7 @@ class JobDescriptionResponse(BaseModel):
 
 class JobDescriptionListResponse(BaseModel):
     """Schema for listing job descriptions."""
+
     id: UUID4
     company_name: str
     job_title: str

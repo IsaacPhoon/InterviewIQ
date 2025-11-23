@@ -1,28 +1,37 @@
 """Question model."""
-from sqlalchemy import Column, String, DateTime, Text, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
-from datetime import datetime
+
 import uuid
+from datetime import datetime
 
 from app.core.database import Base
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 
 class Question(Base):
     """Interview question model."""
 
-    __tablename__ = "questions"
+    __tablename__ = 'questions'
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    job_description_id = Column(UUID(as_uuid=True), ForeignKey("job_descriptions.id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    job_description_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('job_descriptions.id', ondelete='CASCADE'),
+        nullable=False,
+    )
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False
+    )
     question_text = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
-    job_description = relationship("JobDescription", back_populates="questions")
-    user = relationship("User", back_populates="questions")
-    responses = relationship("Response", back_populates="question", cascade="all, delete-orphan")
+    job_description = relationship('JobDescription', back_populates='questions')
+    user = relationship('User', back_populates='questions')
+    responses = relationship(
+        'Response', back_populates='question', cascade='all, delete-orphan'
+    )
 
     def __repr__(self):
-        return f"<Question(id={self.id}, text={self.question_text[:50]}...)>"
+        return f'<Question(id={self.id}, text={self.question_text[:50]}...)>'

@@ -1,20 +1,26 @@
 """Response score model."""
-from sqlalchemy import Column, Integer, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import relationship
-from datetime import datetime
+
 import uuid
+from datetime import datetime
 
 from app.core.database import Base
+from sqlalchemy import Column, DateTime, ForeignKey, Integer
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import relationship
 
 
 class ResponseScore(Base):
     """Evaluation scores for a response."""
 
-    __tablename__ = "response_scores"
+    __tablename__ = 'response_scores'
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    response_id = Column(UUID(as_uuid=True), ForeignKey("responses.id", ondelete="CASCADE"), unique=True, nullable=False)
+    response_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('responses.id', ondelete='CASCADE'),
+        unique=True,
+        nullable=False,
+    )
 
     # Raw JSON from Claude
     scores_json = Column(JSONB, nullable=False)
@@ -29,7 +35,7 @@ class ResponseScore(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
-    response = relationship("Response", back_populates="score")
+    response = relationship('Response', back_populates='score')
 
     def __repr__(self):
-        return f"<ResponseScore(id={self.id}, response_id={self.response_id})>"
+        return f'<ResponseScore(id={self.id}, response_id={self.response_id})>'

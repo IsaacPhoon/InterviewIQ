@@ -1,31 +1,34 @@
 """Job description API endpoints."""
+
 import logging
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.user import User
 from app.models.job_description import JobDescription, JobDescriptionStatus
 from app.models.question import Question
+from app.models.user import User
 from app.schemas.job_description import (
     JobDescriptionCreate,
+    JobDescriptionListResponse,
     JobDescriptionResponse,
-    JobDescriptionListResponse
 )
 from app.schemas.question import QuestionResponse
 from app.services.claude_service import claude_service
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
-router = APIRouter(prefix="/api/job-descriptions", tags=["Job Descriptions"])
+router = APIRouter(prefix='/api/job-descriptions', tags=['Job Descriptions'])
 logger = logging.getLogger(__name__)
 
 
-@router.post("", response_model=JobDescriptionResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    '', response_model=JobDescriptionResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_job_description(
     job_data: JobDescriptionCreate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Create a job description with text input and generate interview questions.
@@ -49,7 +52,7 @@ async def create_job_description(
             job_title=job_data.job_title,
             file_path=None,  # No file path needed for text input
             extracted_text=job_data.description_text,
-            status=JobDescriptionStatus.PENDING
+            status=JobDescriptionStatus.PENDING,
         )
 
         db.add(job_description)
@@ -59,9 +62,7 @@ async def create_job_description(
         # Generate questions using Claude
         try:
             questions_list = claude_service.generate_questions(
-                job_data.description_text,
-                job_data.company_name,
-                job_data.job_title
+                job_data.description_text, job_data.company_name, job_data.job_title
             )
 
             # Save questions to database
@@ -69,7 +70,7 @@ async def create_job_description(
                 question = Question(
                     job_description_id=job_description.id,
                     user_id=current_user.id,
-                    question_text=question_text
+                    question_text=question_text,
                 )
                 db.add(question)
 
@@ -78,7 +79,9 @@ async def create_job_description(
             db.commit()
             db.refresh(job_description)
 
-            logger.info(f"Successfully generated {len(questions_list)} questions for job description {job_description.id}")
+            logger.info(
+                f'Successfully generated {len(questions_list)} questions for job description {job_description.id}'
+            )
 
         except Exception as e:
             # Update status to error
@@ -87,22 +90,21 @@ async def create_job_description(
             db.commit()
             db.refresh(job_description)
 
-            logger.error(f"Failed to generate questions: {e}")
+            logger.error(f'Failed to generate questions: {e}')
 
         return job_description
 
     except Exception as e:
-        logger.error(f"Error creating job description: {e}")
+        logger.error(f'Error creating job description: {e}')
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to process job description"
+            detail='Failed to process job description',
         )
 
 
-@router.get("", response_model=List[JobDescriptionListResponse])
+@router.get('', response_model=List[JobDescriptionListResponse])
 def list_job_descriptions(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """
     List all job descriptions for the authenticated user.
@@ -114,18 +116,21 @@ def list_job_descriptions(
     Returns:
         List of user's job descriptions
     """
-    job_descriptions = db.query(JobDescription).filter(
-        JobDescription.user_id == current_user.id
-    ).order_by(JobDescription.created_at.desc()).all()
+    job_descriptions = (
+        db.query(JobDescription)
+        .filter(JobDescription.user_id == current_user.id)
+        .order_by(JobDescription.created_at.desc())
+        .all()
+    )
 
     return job_descriptions
 
 
-@router.get("/{job_description_id}/questions", response_model=List[QuestionResponse])
+@router.get('/{job_description_id}/questions', response_model=List[QuestionResponse])
 def get_questions(
     job_description_id: str,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get all questions for a specific job description.
@@ -142,20 +147,25 @@ def get_questions(
         HTTPException: If job description not found or unauthorized
     """
     # Verify job description belongs to user
-    job_description = db.query(JobDescription).filter(
-        JobDescription.id == job_description_id,
-        JobDescription.user_id == current_user.id
-    ).first()
+    job_description = (
+        db.query(JobDescription)
+        .filter(
+            JobDescription.id == job_description_id,
+            JobDescription.user_id == current_user.id,
+        )
+        .first()
+    )
 
     if not job_description:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Job description not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail='Job description not found'
         )
 
     # Get questions
-    questions = db.query(Question).filter(
-        Question.job_description_id == job_description_id
-    ).all()
+    questions = (
+        db.query(Question)
+        .filter(Question.job_description_id == job_description_id)
+        .all()
+    )
 
     return questions

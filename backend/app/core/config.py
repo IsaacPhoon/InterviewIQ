@@ -1,15 +1,17 @@
 """Application configuration using Pydantic settings."""
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
+
 import json
+from typing import Optional
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # Application
-    app_name: str = "InterviewIQ"
-    app_version: str = "1.0.0"
+    app_name: str = 'InterviewIQ'
+    app_version: str = '1.0.0'
     debug: bool = False
 
     # Database
@@ -17,12 +19,12 @@ class Settings(BaseSettings):
 
     # Security
     jwt_secret: str
-    jwt_algorithm: str = "HS256"
+    jwt_algorithm: str = 'HS256'
     jwt_expiration_hours: int = 2
 
     # AI Services
     claude_api_key: str
-    claude_model: str = "claude-sonnet-4-5-20250929"
+    claude_model: str = 'claude-sonnet-4-5-20250929'
 
     # Storage
     max_audio_size_mb: int = 50
@@ -36,8 +38,8 @@ class Settings(BaseSettings):
     r2_public_url: Optional[str] = None  # Optional: Custom domain for public access
 
     # Whisper
-    whisper_model: str = "base.en"
-    whisper_device: str = "cpu"  # or "cuda" for GPU
+    whisper_model: str = 'base.en'
+    whisper_device: str = 'cpu'  # or "cuda" for GPU
 
     # CORS
     cors_origins: str = '["http://localhost:5173", "http://localhost:3000"]'
@@ -49,13 +51,11 @@ class Settings(BaseSettings):
             try:
                 return json.loads(self.cors_origins)
             except json.JSONDecodeError:
-                return ["http://localhost:5173", "http://localhost:3000"]
+                return ['http://localhost:5173', 'http://localhost:3000']
         return self.cors_origins
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False
+        env_file='.env', env_file_encoding='utf-8', case_sensitive=False
     )
 
 
