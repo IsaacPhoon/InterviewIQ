@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useAuth } from '@/context/AuthContext';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 
 export const Register: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { register } = useAuth();
@@ -15,15 +15,15 @@ export const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError("Password must be at least 6 characters");
       return;
     }
 
@@ -31,9 +31,11 @@ export const Register: React.FC = () => {
 
     try {
       await register(email, password);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Registration failed. Please try again.');
+      setError(
+        err.response?.data?.detail || "Registration failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -118,9 +120,9 @@ export const Register: React.FC = () => {
 
             <motion.div variants={itemVariants} className="space-y-6">
               <div className="form-control">
-                <label htmlFor="email" className="label">
-                  <span className="label-text text-gray-700 dark:text-gray-300 font-normal text-sm">
-                    Email address
+                <label htmlFor="email" className="label mb-2">
+                  <span className="label-text text-gray-900 dark:text-gray-100 font-semibold text-base">
+                    Email Address
                   </span>
                 </label>
                 <motion.input
@@ -137,8 +139,8 @@ export const Register: React.FC = () => {
               </div>
 
               <div className="form-control">
-                <label htmlFor="password" className="label">
-                  <span className="label-text text-gray-700 dark:text-gray-300 font-normal text-sm">
+                <label htmlFor="password" className="label mb-2">
+                  <span className="label-text text-gray-900 dark:text-gray-100 font-semibold text-base">
                     Password
                   </span>
                 </label>
@@ -156,8 +158,8 @@ export const Register: React.FC = () => {
               </div>
 
               <div className="form-control">
-                <label htmlFor="confirm-password" className="label">
-                  <span className="label-text text-gray-700 dark:text-gray-300 font-normal text-sm">
+                <label htmlFor="confirm-password" className="label mb-2">
+                  <span className="label-text text-gray-900 dark:text-gray-100 font-semibold text-base">
                     Confirm Password
                   </span>
                 </label>
@@ -186,7 +188,7 @@ export const Register: React.FC = () => {
                 {loading ? (
                   <span className="loading loading-spinner loading-md"></span>
                 ) : (
-                  'Create account'
+                  "Create account"
                 )}
               </motion.button>
             </motion.div>
@@ -196,7 +198,10 @@ export const Register: React.FC = () => {
                 to="/login"
                 className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-normal text-sm transition-colors"
               >
-                Already have an account? <span className="font-medium underline underline-offset-2">Sign in</span>
+                Already have an account?{" "}
+                <span className="font-medium underline underline-offset-2">
+                  Sign in
+                </span>
               </Link>
             </motion.div>
           </form>
