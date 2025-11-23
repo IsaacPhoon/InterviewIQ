@@ -19,7 +19,7 @@ export const Login: React.FC = () => {
 
   useEffect(() => {
     let index = 0;
-    const typingSpeed = 30;
+    const typingSpeed = 20;
 
     const typeText = () => {
       if (index < introText.length) {
@@ -136,7 +136,7 @@ export const Login: React.FC = () => {
         >
           <motion.div variants={itemVariants}>
             <h2 className="text-center text-5xl font-light text-gray-900 dark:text-gray-100 mb-3 tracking-tight">
-              AI Interview Prep Coach
+              InterviewIQ
             </h2>
             <p className="text-center text-base text-gray-600 dark:text-gray-400 mb-10">
               Sign in to your account
