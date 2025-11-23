@@ -1,16 +1,19 @@
+'use client';
+
 import React, { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { jobDescriptionsAPI } from "@/services/api";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
-export const Upload: React.FC = () => {
+function UploadContent() {
   const [descriptionText, setDescriptionText] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [error, setError] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   // Auto-resize textarea based on content
@@ -45,7 +48,7 @@ export const Upload: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["jobDescriptions"] });
-      navigate("/dashboard");
+      router.push("/dashboard");
     },
     onError: (err: any) => {
       setError(
@@ -69,7 +72,7 @@ export const Upload: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <div className="mb-10">
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => router.push("/dashboard")}
             className="text-primary-600 hover:text-primary-500 dark:text-primary-400 mb-6 text-lg font-medium flex items-center gap-2"
           >
             ← Back to Dashboard
@@ -150,7 +153,7 @@ Responsibilities:
           <div className="flex gap-6 pt-4">
             <button
               type="button"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => router.push("/dashboard")}
               className="btn btn-secondary flex-1 text-lg py-4"
             >
               Cancel
@@ -174,4 +177,12 @@ Responsibilities:
       </div>
     </div>
   );
-};
+}
+
+export default function UploadPage() {
+  return (
+    <ProtectedRoute>
+      <UploadContent />
+    </ProtectedRoute>
+  );
+}

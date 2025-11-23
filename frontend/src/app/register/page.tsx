@@ -1,9 +1,13 @@
+'use client';
+
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import { AuthBackground } from "@/components/AuthBackground";
 
-export const Register: React.FC = () => {
+export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -11,7 +15,7 @@ export const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const { register } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +35,7 @@ export const Register: React.FC = () => {
 
     try {
       await register(email, password);
-      navigate("/dashboard");
+      router.push("/dashboard");
     } catch (err: any) {
       setError(
         err.response?.data?.detail || "Registration failed. Please try again."
@@ -63,29 +67,9 @@ export const Register: React.FC = () => {
     },
   };
 
-  const floatingAnimation = {
-    y: [0, -10, 0],
-    transition: {
-      duration: 3,
-      repeat: Infinity,
-      ease: "easeInOut" as const,
-    },
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Subtle animated background elements */}
-      <motion.div
-        animate={floatingAnimation}
-        className="absolute top-40 left-20 w-96 h-96 bg-blue-100/30 dark:bg-blue-900/10 rounded-full blur-3xl"
-      />
-      <motion.div
-        animate={{
-          ...floatingAnimation,
-          transition: { ...floatingAnimation.transition, delay: 1.5 },
-        }}
-        className="absolute bottom-40 right-20 w-80 h-80 bg-purple-100/30 dark:bg-purple-900/10 rounded-full blur-3xl"
-      />
+      <AuthBackground />
 
       <motion.div
         variants={containerVariants}
@@ -94,6 +78,7 @@ export const Register: React.FC = () => {
         className="max-w-2xl w-full space-y-8 relative z-10"
       >
         <motion.div
+          layoutId="auth-card"
           className="card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl p-12 rounded-2xl"
           whileHover={{ scale: 1.01 }}
           transition={{ type: "spring", stiffness: 300 }}
@@ -195,7 +180,7 @@ export const Register: React.FC = () => {
 
             <motion.div variants={itemVariants} className="text-center">
               <Link
-                to="/login"
+                href="/login"
                 className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-normal text-sm transition-colors"
               >
                 Already have an account?{" "}
@@ -209,4 +194,4 @@ export const Register: React.FC = () => {
       </motion.div>
     </div>
   );
-};
+}
