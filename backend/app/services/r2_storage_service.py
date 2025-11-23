@@ -1,13 +1,11 @@
 """Cloudflare R2 storage service using boto3."""
 
 import logging
-import tempfile
 import uuid
 from pathlib import Path
 from typing import BinaryIO
 
 import boto3
-import pypdf
 from app.core.config import settings
 from botocore.exceptions import ClientError
 
@@ -33,88 +31,7 @@ class R2StorageService:
 
         logger.info(f'R2 storage initialized with bucket: {self.bucket_name}')
 
-    async def save_pdf(self, file: BinaryIO, filename: str) -> tuple[str, str]:
-        """
-        Save PDF file to R2 and extract text.
-
-        Args:
-            file: File object to save
-            filename: Original filename
-
-        Returns:
-            Tuple of (r2_key, extracted_text)
-
-        Raises:
-            Exception: If file save or text extraction fails
-        """
-        try:
-            # Generate unique filename
-            file_ext = Path(filename).suffix
-            unique_filename = f'{uuid.uuid4()}{file_ext}'
-            r2_key = f'pdfs/{unique_filename}'
-
-            # Read file content
-            content = file.read()
-
-            # Upload to R2
-            self.s3_client.put_object(
-                Bucket=self.bucket_name,
-                Key=r2_key,
-                Body=content,
-                ContentType='application/pdf',
-            )
-
-            logger.info(f'PDF saved to R2: {r2_key}')
-
-            # Extract text from PDF (need to save temporarily for pypdf)
-            with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_file:
-                temp_file.write(content)
-                temp_path = temp_file.name
-
-            try:
-                extracted_text = self.extract_pdf_text(temp_path)
-            finally:
-                # Clean up temporary file
-                Path(temp_path).unlink(missing_ok=True)
-
-            return r2_key, extracted_text
-
-        except ClientError as e:
-            logger.error(f'Error saving PDF to R2: {e}')
-            raise Exception(f'Failed to save PDF to R2: {str(e)}')
-        except Exception as e:
-            logger.error(f'Error saving PDF: {e}')
-            raise
-
-    def extract_pdf_text(self, pdf_path: str) -> str:
-        """
-        Extract text from PDF file.
-
-        Args:
-            pdf_path: Path to PDF file
-
-        Returns:
-            Extracted text as string
-        """
-        try:
-            reader = pypdf.PdfReader(pdf_path)
-            text_parts = []
-
-            for page in reader.pages:
-                text = page.extract_text()
-                if text:
-                    text_parts.append(text)
-
-            full_text = '\n'.join(text_parts).strip()
-
-            logger.info(f'Extracted {len(full_text)} characters from PDF')
-            return full_text
-
-        except Exception as e:
-            logger.error(f'Error extracting PDF text: {e}')
-            raise Exception('Failed to extract text from PDF')
-
-    async def save_audio(self, file: BinaryIO, filename: str) -> str:
+    def save_audio(self, file: BinaryIO, filename: str) -> str:
         """
         Save audio file to R2.
 
@@ -200,7 +117,7 @@ class R2StorageService:
                 logger.error(f'Error generating presigned URL: {e}')
                 raise
 
-    async def download_file(self, r2_key: str) -> bytes:
+    def download_file(self, r2_key: str) -> bytes:
         """
         Download a file from R2.
 

@@ -105,7 +105,7 @@ def get_current_user(
     token = credentials.credentials
     payload = decode_access_token(token)
 
-    user_id: str = payload.get('sub')
+    user_id: Optional[str] = payload.get('sub')
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

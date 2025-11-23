@@ -3,7 +3,7 @@
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.user import User
-from app.schemas.user import LoginRequest, Token, UserCreate, UserResponse
+from app.schemas.user import LoginRequest, Token, UserCreate
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -69,7 +69,7 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         )
 
     # Verify password
-    if not verify_password(login_data.password, user.password_hash):
+    if not verify_password(login_data.password, str(user.password_hash)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid credentials'
         )
