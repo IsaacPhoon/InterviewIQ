@@ -22,7 +22,10 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         """Get database URL, converting postgres:// to postgresql:// for Heroku compatibility."""
         _raw_database_url = os.environ.get('DATABASE_URL')
-        if _raw_database_url and _raw_database_url.startswith("postgres://"):
+        if not _raw_database_url:
+            # Return empty string if not set (will cause error later but won't crash on import)
+            return ""
+        if _raw_database_url.startswith("postgres://"):
             _raw_database_url = _raw_database_url.replace("postgres://", "postgresql://", 1)
         return _raw_database_url
 
@@ -66,7 +69,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file='.env',
         env_file_encoding='utf-8',
-        case_sensitive=False
+        case_sensitive=False,
+        extra='ignore',  # Ignore extra fields like DATABASE_URL when it's a computed field
+        env_ignore_empty=True  # Ignore empty environment variables
     )
 
 
