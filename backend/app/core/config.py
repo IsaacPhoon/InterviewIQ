@@ -2,10 +2,15 @@
 
 import json
 import os
+from pathlib import Path
 from typing import Optional
 
+from dotenv import load_dotenv
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+env_path = Path(__file__).parent.parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 
 class Settings(BaseSettings):
@@ -21,10 +26,9 @@ class Settings(BaseSettings):
     @property
     def database_url(self) -> str:
         """Get database URL, converting postgres:// to postgresql:// for Heroku compatibility."""
-        _raw_database_url = os.environ.get('DATABASE_URL')
+        _raw_database_url = os.environ.get('DATABASE_URL', '')
         if not _raw_database_url:
-            # Return empty string if not set (will cause error later but won't crash on import)
-            return ""
+            raise ValueError("DATABASE_URL environment variable is not set")
         if _raw_database_url.startswith("postgres://"):
             _raw_database_url = _raw_database_url.replace("postgres://", "postgresql://", 1)
         return _raw_database_url
