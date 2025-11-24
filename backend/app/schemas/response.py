@@ -56,12 +56,3 @@ class ResponseResponse(BaseModel):
         from_attributes = True
 
 
-class ResponseListItem(BaseModel):
-    """Schema for listing responses."""
-
-    response_id: UUID4
-    created_at: datetime
-    scores: ScoresResponse
-
-    class Config:
-        from_attributes = True

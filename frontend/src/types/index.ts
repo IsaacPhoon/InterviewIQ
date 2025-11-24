@@ -60,9 +60,3 @@ export interface Response {
   overall_comment?: string;
   created_at: string;
 }
-
-export interface ResponseListItem {
-  response_id: string;
-  created_at: string;
-  scores: Scores;
-}

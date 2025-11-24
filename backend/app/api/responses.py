@@ -14,7 +14,6 @@ from app.models.response_score import ResponseScore
 from app.models.user import User
 from app.schemas.response import (
     FeedbackResponse,
-    ResponseListItem,
     ResponseResponse,
     ScoresResponse,
 )
