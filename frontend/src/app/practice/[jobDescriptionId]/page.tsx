@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { CustomDropdown } from "@/components/CustomDropdown";
 import { QuestionTimeline } from "@/components/QuestionTimeline";
 import { formatDateTime } from "@/utils/dateFormatter";
+import { MAX_AUDIO_SIZE, MAX_AUDIO_SIZE_MB, MAX_AUDIO_DURATION_MINUTES } from "@/utils/constants";
 
 function PracticeContent() {
   const params = useParams();
@@ -25,6 +26,19 @@ function PracticeContent() {
   const [selectedResponseId, setSelectedResponseId] = useState<string | null>(
     null
   );
+
+  const {
+    isRecording,
+    isInitializing,
+    audioBlob,
+    audioURL,
+    startRecording,
+    stopRecording,
+    clearRecording,
+    error: recordingError,
+    warning: recordingWarning,
+    estimatedMinutes,
+  } = useAudioRecorder();
 
   const { data: questions, isLoading } = useQuery({
     queryKey: ["questions", jobDescriptionId],
@@ -69,7 +83,7 @@ function PracticeContent() {
       setIsViewingHistory(false);
     }
     clearRecording();
-  }, [currentQuestionIndex, previousResponses]);
+  }, [currentQuestionIndex, previousResponses, clearRecording]);
 
   // Update evaluation when selected response changes
   useEffect(() => {
@@ -83,17 +97,6 @@ function PracticeContent() {
       }
     }
   }, [selectedResponseId, previousResponses]);
-
-  const {
-    isRecording,
-    isInitializing,
-    audioBlob,
-    audioURL,
-    startRecording,
-    stopRecording,
-    clearRecording,
-    error: recordingError,
-  } = useAudioRecorder();
 
   const submitMutation = useMutation({
     mutationFn: ({
@@ -117,9 +120,18 @@ function PracticeContent() {
     },
   });
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const handleSubmit = () => {
     if (!audioBlob || !questions) return;
 
+    // Validate audio file size
+    if (audioBlob.size > MAX_AUDIO_SIZE) {
+      setSubmitError(`Audio file is too large (${(audioBlob.size / 1024 / 1024).toFixed(1)}MB). Maximum size is ${MAX_AUDIO_SIZE_MB}MB (~${MAX_AUDIO_DURATION_MINUTES} minutes).`);
+      return;
+    }
+
+    setSubmitError(null);
     const currentQuestion = questions[currentQuestionIndex];
     const audioFile = new File([audioBlob], "response.webm", {
       type: "audio/webm",
@@ -294,6 +306,26 @@ function PracticeContent() {
               </motion.div>
             )}
 
+            {submitError && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg"
+              >
+                {submitError}
+              </motion.div>
+            )}
+
+            {recordingWarning && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg font-medium"
+              >
+                ⚠️ {recordingWarning}
+              </motion.div>
+            )}
+
             {!evaluation && !isLoadingResponse && (
               <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-lg p-6 text-center">
                 {!audioBlob ? (
@@ -328,6 +360,11 @@ function PracticeContent() {
                         ? "Recording... Click to stop"
                         : "Click to start recording"}
                     </p>
+                    {isRecording && estimatedMinutes > 0 && (
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {estimatedMinutes} minute{estimatedMinutes !== 1 ? 's' : ''} elapsed
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <motion.div
@@ -360,10 +397,6 @@ function PracticeContent() {
                         controls
                         className="w-full"
                         preload="metadata"
-                        onLoadedMetadata={(e) => {
-                          const audio = e.currentTarget;
-                          audio.currentTime = 0;
-                        }}
                       />
                     )}
                     <div className="flex gap-4">

@@ -5,6 +5,14 @@ import os
 from pathlib import Path
 from typing import Optional
 
+from app.core.constants import (
+    JOB_DESCRIPTION_COMPANY_NAME_MAX_LENGTH,
+    JOB_DESCRIPTION_JOB_TITLE_MAX_LENGTH,
+    JOB_DESCRIPTION_TEXT_MAX_LENGTH,
+    JOB_DESCRIPTION_TEXT_MIN_LENGTH,
+    MAX_AUDIO_DURATION_MINUTES,
+    MAX_AUDIO_SIZE_MB,
+)
 from dotenv import load_dotenv
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -43,8 +51,14 @@ class Settings(BaseSettings):
     claude_model: str = 'claude-sonnet-4-5-20250929'
 
     # Storage
-    max_audio_size_mb: int = 50
-    max_audio_duration_minutes: int = 5
+    max_audio_size_mb: int = MAX_AUDIO_SIZE_MB
+    max_audio_duration_minutes: int = MAX_AUDIO_DURATION_MINUTES
+
+    # Job Description limits
+    job_description_company_name_max_length: int = JOB_DESCRIPTION_COMPANY_NAME_MAX_LENGTH
+    job_description_job_title_max_length: int = JOB_DESCRIPTION_JOB_TITLE_MAX_LENGTH
+    job_description_text_min_length: int = JOB_DESCRIPTION_TEXT_MIN_LENGTH
+    job_description_text_max_length: int = JOB_DESCRIPTION_TEXT_MAX_LENGTH
 
     # Cloudflare R2 Storage (Required)
     r2_endpoint_url: str

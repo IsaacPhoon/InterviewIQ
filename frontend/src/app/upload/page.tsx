@@ -6,6 +6,13 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { jobDescriptionsAPI } from "@/services/api";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import {
+  JOB_DESCRIPTION_COMPANY_NAME_MAX_LENGTH,
+  JOB_DESCRIPTION_JOB_TITLE_MAX_LENGTH,
+  JOB_DESCRIPTION_TEXT_MAX_LENGTH,
+  JOB_DESCRIPTION_TEXT_MIN_LENGTH,
+} from "@/utils/constants";
+
 
 function UploadContent() {
   const [descriptionText, setDescriptionText] = useState("");
@@ -43,8 +50,18 @@ function UploadContent() {
 
   const mutation = useMutation({
     mutationFn: () => {
+      if (!companyName.trim())
+        throw new Error("Company name is required");
+      if (companyName.length > JOB_DESCRIPTION_COMPANY_NAME_MAX_LENGTH)
+        throw new Error(`Company name must be ${JOB_DESCRIPTION_COMPANY_NAME_MAX_LENGTH} characters or less`);
+      if (!jobTitle.trim())
+        throw new Error("Job title is required");
+      if (jobTitle.length > JOB_DESCRIPTION_JOB_TITLE_MAX_LENGTH)
+        throw new Error(`Job title must be ${JOB_DESCRIPTION_JOB_TITLE_MAX_LENGTH} characters or less`);
       if (!descriptionText.trim())
         throw new Error("Job description is required");
+      if (descriptionText.length > JOB_DESCRIPTION_TEXT_MAX_LENGTH)
+        throw new Error(`Job description must be ${JOB_DESCRIPTION_TEXT_MAX_LENGTH} characters or less`);
       return jobDescriptionsAPI.create(companyName, jobTitle, descriptionText);
     },
     onSuccess: () => {
@@ -138,12 +155,18 @@ function UploadContent() {
             <motion.input
               type="text"
               required
+              maxLength={JOB_DESCRIPTION_COMPANY_NAME_MAX_LENGTH}
               className="input text-lg py-4 px-5 transition-all"
               placeholder="e.g., Google, Microsoft, Startup Inc."
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               whileFocus={{ scale: 1.01, borderColor: "#0284c7" }}
             />
+            {companyName.length > JOB_DESCRIPTION_COMPANY_NAME_MAX_LENGTH && (
+              <p className="mt-2 text-base font-medium text-red-600 dark:text-red-400">
+                Exceeds limit by {companyName.length - JOB_DESCRIPTION_COMPANY_NAME_MAX_LENGTH} characters
+              </p>
+            )}
           </motion.div>
 
           <motion.div
@@ -158,12 +181,18 @@ function UploadContent() {
             <motion.input
               type="text"
               required
+              maxLength={JOB_DESCRIPTION_JOB_TITLE_MAX_LENGTH}
               className="input text-lg py-4 px-5 transition-all"
               placeholder="e.g., Senior Software Engineer, Product Manager"
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
               whileFocus={{ scale: 1.01, borderColor: "#0284c7" }}
             />
+            {jobTitle.length > JOB_DESCRIPTION_JOB_TITLE_MAX_LENGTH && (
+              <p className="mt-2 text-base font-medium text-red-600 dark:text-red-400">
+                Exceeds limit by {jobTitle.length - JOB_DESCRIPTION_JOB_TITLE_MAX_LENGTH} characters
+              </p>
+            )}
           </motion.div>
 
           <motion.div
@@ -178,37 +207,31 @@ function UploadContent() {
             <motion.textarea
               ref={textareaRef}
               required
+              maxLength={JOB_DESCRIPTION_TEXT_MAX_LENGTH}
               className="input resize-none text-lg py-4 px-5 leading-relaxed overflow-x-hidden whitespace-pre-wrap break-words transition-all"
-              placeholder="Paste the job description here...
-
-Example:
-We are seeking a talented Software Engineer to join our team. The ideal candidate will have:
-- 3+ years of experience in software development
-- Strong knowledge of React, Node.js, and TypeScript
-- Experience with cloud platforms (AWS, Azure, or GCP)
-- Excellent problem-solving and communication skills
-
-Responsibilities:
-- Design and implement scalable web applications
-- Collaborate with cross-functional teams
-- Write clean, maintainable code
-- Participate in code reviews and technical discussions"
+              placeholder="Paste or type the full job description here, including responsibilities, requirements, and qualifications..."
               value={descriptionText}
               onChange={(e) => setDescriptionText(e.target.value)}
               whileFocus={{ scale: 1.005, borderColor: "#0284c7" }}
             />
             <motion.p
-              className="mt-2 text-base"
+              className="mt-2 text-base font-medium"
               animate={{
-                color: descriptionText.length < 100
+                color: descriptionText.length < JOB_DESCRIPTION_TEXT_MIN_LENGTH
                   ? "#ef4444"
-                  : descriptionText.length < 300
+                  : descriptionText.length < 100
+                  ? "#f59e0b"
+                  : descriptionText.length > JOB_DESCRIPTION_TEXT_MAX_LENGTH * 0.9
                   ? "#f59e0b"
                   : "#10b981"
               }}
             >
-              {descriptionText.length} characters
-              {descriptionText.length < 100 && " (minimum 100 recommended)"}
+              {descriptionText.length} / {JOB_DESCRIPTION_TEXT_MAX_LENGTH} characters
+              {descriptionText.length < JOB_DESCRIPTION_TEXT_MIN_LENGTH && ` (minimum ${JOB_DESCRIPTION_TEXT_MIN_LENGTH} required)`}
+              {descriptionText.length >= JOB_DESCRIPTION_TEXT_MIN_LENGTH && descriptionText.length < 100 && " (100+ recommended for better results)"}
+              {descriptionText.length > JOB_DESCRIPTION_TEXT_MAX_LENGTH * 0.9 &&
+               descriptionText.length < JOB_DESCRIPTION_TEXT_MAX_LENGTH &&
+               " (approaching limit)"}
             </motion.p>
           </motion.div>
 
@@ -229,7 +252,7 @@ Responsibilities:
             </motion.button>
             <motion.button
               type="submit"
-              disabled={mutation.isPending || !descriptionText.trim()}
+              disabled={mutation.isPending || !descriptionText.trim() || descriptionText.length < JOB_DESCRIPTION_TEXT_MIN_LENGTH}
               className="btn btn-primary flex-1 text-lg py-4 shadow-lg relative overflow-hidden group"
               whileHover={{ scale: mutation.isPending ? 1 : 1.02 }}
               whileTap={{ scale: mutation.isPending ? 1 : 0.98 }}
