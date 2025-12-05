@@ -66,21 +66,25 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
         // Check recording duration and size every second
         sizeCheckIntervalRef.current = setInterval(() => {
           const elapsedMinutes = (Date.now() - recordingStartTimeRef.current) / MS_PER_SECOND / SECONDS_PER_MINUTE;
-          setEstimatedMinutes(Math.floor(elapsedMinutes));
+          setEstimatedMinutes(Number(elapsedMinutes.toFixed(1)));
 
           // Calculate current recording size
           const currentSize = chunksRef.current.reduce((total, chunk) => total + chunk.size, 0);
           const currentSizeMB = currentSize / 1024 / 1024;
 
-          // Warn if approaching size limit
-          if (currentSize >= WARNING_AUDIO_SIZE) {
+          // Check and warn about size limit first
+          if (currentSize >= MAX_AUDIO_SIZE) {
+            setWarning(`Maximum recording size reached (${MAX_AUDIO_SIZE_MB}MB). Please stop recording.`);
+          }
+          else if (currentSize >= WARNING_AUDIO_SIZE) {
             setWarning(`Recording is ${currentSizeMB.toFixed(1)}MB. Maximum is ${MAX_AUDIO_SIZE_MB}MB (~${MAX_AUDIO_DURATION_MINUTES} minutes). Please stop soon.`);
           }
-          // Warn if approaching time limit
-          else if (elapsedMinutes >= WARNING_AUDIO_DURATION_MINUTES && elapsedMinutes < MAX_AUDIO_DURATION_MINUTES) {
-            setWarning(`Recording is ${Math.floor(elapsedMinutes)} minutes long. Maximum is ${MAX_AUDIO_DURATION_MINUTES} minutes.`);
-          } else if (elapsedMinutes >= MAX_AUDIO_DURATION_MINUTES) {
+          // Check and warn about time limit second (can exceed time if size is under limit)
+          else if (elapsedMinutes >= MAX_AUDIO_DURATION_MINUTES) {
             setWarning(`Maximum recording time reached (${MAX_AUDIO_DURATION_MINUTES} minutes). Please stop recording.`);
+          }
+          else if (elapsedMinutes >= WARNING_AUDIO_DURATION_MINUTES) {
+            setWarning(`Recording is ${elapsedMinutes.toFixed(1)} minutes long. Maximum is ${MAX_AUDIO_DURATION_MINUTES} minutes.`);
           }
         }, 1000);
       };
