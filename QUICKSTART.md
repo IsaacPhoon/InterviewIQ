@@ -1,311 +1,275 @@
-# Quick Start Guide
+# QuickStart Guide - InterviewIQ
 
-Get the AI Interview Prep Coach running in 10 minutes!
+This guide will help you get InterviewIQ running locally on your machine in under 10 minutes.
 
 ## Prerequisites
 
-Make sure you have these installed:
-- **Python 3.10+** ([Download](https://www.python.org/downloads/))
-- **Node.js 18+** ([Download](https://nodejs.org/))
-- **PostgreSQL 14+** ([Download](https://www.postgresql.org/download/))
-- **Claude API Key** (Get from [Anthropic Console](https://console.anthropic.com/))
+Before you begin, ensure you have the following installed:
+
+- **Python 3.11+** ([Download](https://www.python.org/downloads/))
+- **Node.js 18+** and npm ([Download](https://nodejs.org/))
+- **Git** ([Download](https://git-scm.com/downloads))
+- **PostgreSQL 14+** ([Download](https://www.postgresql.org/download/)) **OR** **Docker** ([Download](https://www.docker.com/products/docker-desktop/))
+
+You'll also need:
+
+- An **Anthropic API key** ([Get one here](https://console.anthropic.com/))
+- A **Cloudflare R2 account** for audio storage ([Sign up](https://developers.cloudflare.com/r2/))
 
 ## Step 1: Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd AnthropicxUCIHackathon
+git clone https://github.com/IsaacPhoon/InterviewIQ.git
+cd InterviewIQ
 ```
 
 ## Step 2: Database Setup
 
-Create the PostgreSQL database:
+### Option A: Using Docker (Recommended)
+
+If you have Docker installed, use the provided docker-compose file:
+
+```bash
+docker-compose up -d
+```
+
+This will start PostgreSQL on port 5432 with:
+
+- Database: `interview_prep`
+- User: `postgres`
+- Password: `postgres`
+
+### Option B: Manual PostgreSQL Setup
+
+1. Create a new PostgreSQL database:
 
 ```bash
 createdb interview_prep
 ```
 
-Or using psql:
-```sql
-CREATE DATABASE interview_prep;
-```
+1. Note your database connection details for the next step.
 
 ## Step 3: Backend Setup
 
-Open a terminal and run:
+### 3.1 Navigate to Backend Directory
 
 ```bash
-# Navigate to backend directory
 cd backend
+```
 
-# Create virtual environment
+### 3.2 Create Virtual Environment
+
+```bash
+# Windows
 python -m venv venv
+venv\Scripts\activate
 
-# Activate virtual environment
-# On macOS/Linux:
+# macOS/Linux
+python3 -m venv venv
 source venv/bin/activate
-# On Windows:
-# venv\Scripts\activate
+```
 
-# Install dependencies (may take 2-3 minutes)
+### 3.3 Install Dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-# Copy environment file
+### 3.4 Configure Environment Variables
+
+Copy the example environment file and configure it:
+
+```bash
+# Windows
+copy .env.example .env
+
+# macOS/Linux
 cp .env.example .env
 ```
 
-Now edit the `.env` file with your configuration:
+Now edit the `.env` file and update the following values:
 
-```env
-DATABASE_URL=postgresql://your_username:your_password@localhost:5432/interview_prep
-JWT_SECRET=your-super-secret-random-string-here
-CLAUDE_API_KEY=your-claude-api-key-here
-STORAGE_ROOT=./uploads
-WHISPER_MODEL=base.en
-WHISPER_DEVICE=cpu
-```
+- `DATABASE_URL` - Use `postgresql://postgres:postgres@localhost:5432/interview_prep` if using Docker
+- `JWT_SECRET` - Generate a secure random string (e.g., `openssl rand -hex 32`)
+- `CLAUDE_API_KEY` - Your Anthropic API key from <https://console.anthropic.com/>
+- `R2_ENDPOINT_URL` - Your Cloudflare account endpoint (format: `https://<account-id>.r2.cloudflarestorage.com`)
+- `R2_ACCESS_KEY_ID` - Your R2 access key
+- `R2_SECRET_ACCESS_KEY` - Your R2 secret key
+- `R2_BUCKET_NAME` - Your R2 bucket name
 
-**Important**: Replace:
-- `your_username` and `your_password` with your PostgreSQL credentials
-- `your-super-secret-random-string-here` with a random string (e.g., use `openssl rand -hex 32`)
-- `your-claude-api-key-here` with your actual Claude API key
+**Important Notes:**
 
-Run database migrations:
+- **R2 credentials are required** - the app uses Cloudflare R2 for all audio storage. Set up a free R2 account if you don't have one
+- You can leave `R2_PUBLIC_URL` empty to use presigned URLs
+- Set `DEBUG=True` for local development
+
+### 3.5 Run Database Migrations
 
 ```bash
 alembic upgrade head
 ```
 
-Start the backend server:
+### 3.6 Start the Backend Server
 
 ```bash
+# Development mode with auto-reload
 uvicorn app.main:app --reload
 ```
 
-You should see:
-```
-INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process
-INFO:     Started server process
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-```
+The backend API will be available at: **<http://localhost:8000>**
 
-**Leave this terminal running** and open a new one for the frontend.
+You can view the interactive API docs at: **<http://localhost:8000/docs>**
 
 ## Step 4: Frontend Setup
 
-In a **new terminal**:
+Open a **new terminal window** and navigate to the frontend directory:
+
+### 4.1 Navigate to Frontend Directory
 
 ```bash
-# Navigate to frontend directory
 cd frontend
+```
 
-# Install dependencies (may take 1-2 minutes)
+### 4.2 Install Dependencies
+
+```bash
 npm install
-
-# Copy environment file
-cp .env.example .env
 ```
 
-The `.env` file should contain:
-```env
-VITE_API_URL=http://localhost:8000
+### 4.3 Configure Environment Variables
+
+Create a `.env` file in the `frontend` directory:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-Start the development server:
+### 4.4 Start the Frontend Development Server
 
 ```bash
 npm run dev
 ```
 
-You should see:
-```
-  VITE v6.0.2  ready in XXX ms
+The frontend will be available at: **<http://localhost:3000>**
 
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: use --host to expose
-```
+## Step 5: Test Your Setup
 
-## Step 5: Open the Application
+1. Open your browser and navigate to **<http://localhost:3000>**
+2. You should see the InterviewIQ login page with an animated intro
+3. Click "Create an account" and register with an email and password
+4. After registration, you'll be redirected to the dashboard
 
-Open your browser and go to:
-**[http://localhost:5173](http://localhost:5173)**
+### Quick Test Flow
 
-You should see the login page!
+1. **Upload a Job Description**:
+   - Click "Upload New Job Description"
+   - Enter company name (e.g., "Google")
+   - Enter job title (e.g., "Software Engineer")
+   - Paste a job description or write a brief one
+   - Click "Generate Questions"
+   - Wait for 5 questions to be generated (takes ~10 seconds)
 
-## Step 6: Test the Application
+2. **Practice an Interview**:
+   - From the dashboard, click "Start Practice"
+   - Read the first question
+   - Click the microphone icon to start recording
+   - Speak your answer (try to use the STAR method)
+   - Click the microphone again to stop recording
+   - Click "Submit Response"
+   - Wait for transcription and evaluation (~15-30 seconds)
+   - Review your scores and feedback
 
-### 1. Create an Account
+## Common Issues & Troubleshooting
 
-1. Click "Register" on the login page
-2. Enter an email (e.g., `test@example.com`)
-3. Enter a password (min 6 characters)
-4. Click "Create account"
+### Backend Won't Start
 
-You'll be redirected to the dashboard.
+**Problem**: `ModuleNotFoundError: No module named 'app'`
 
-### 2. Upload a Job Description
+- **Solution**: Make sure you're in the `backend` directory and your virtual environment is activated
 
-1. Click "Upload New Job Description"
-2. Fill in:
-   - Company Name: e.g., "Google"
-   - Job Title: e.g., "Senior Software Engineer"
-   - Upload a PDF job description file
-3. Click "Upload & Generate Questions"
-4. Wait 10-30 seconds for questions to generate
-5. You'll be redirected to the dashboard
+**Problem**: `sqlalchemy.exc.OperationalError: could not connect to server`
 
-### 3. Practice Interview Questions
+- **Solution**: Ensure PostgreSQL is running and the `DATABASE_URL` in `.env` is correct
 
-1. Click "Start Practice" on your uploaded job
-2. Read the interview question
-3. Click the microphone button to start recording
-4. Answer the question (speak for 30-60 seconds)
-5. Click the button again to stop recording
-6. Listen to your recording (optional)
-7. Click "Submit Response"
-8. Wait 10-30 seconds for transcription and evaluation
-9. Review your scores and feedback!
+**Problem**: `anthropic.APIConnectionError`
 
-## Troubleshooting
+- **Solution**: Check that your `CLAUDE_API_KEY` is valid and you have API credits
 
-### Backend won't start
+### Frontend Won't Start
 
-**Error: `ModuleNotFoundError`**
-```bash
-# Make sure virtual environment is activated
-source venv/bin/activate  # macOS/Linux
-# venv\Scripts\activate  # Windows
+**Problem**: `Error: Cannot find module 'next'`
 
-# Reinstall dependencies
-pip install -r requirements.txt
-```
+- **Solution**: Run `npm install` again in the `frontend` directory
 
-**Error: `FATAL: database "interview_prep" does not exist`**
-```bash
-# Create the database
-createdb interview_prep
-```
+**Problem**: API calls failing with CORS errors
 
-**Error: `sqlalchemy.exc.OperationalError`**
-- Check your DATABASE_URL in backend/.env
-- Verify PostgreSQL is running
-- Verify credentials are correct
+- **Solution**: Ensure your frontend URL is listed in the backend's `CORS_ORIGINS` setting
 
-### Frontend won't start
+### Audio Recording Issues
 
-**Error: `npm: command not found`**
-- Install Node.js from https://nodejs.org/
+**Problem**: "Microphone permission denied"
 
-**Error: Module errors**
-```bash
-# Delete node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-```
+- **Solution**: Grant microphone access when prompted by your browser. Check browser settings if needed.
 
-### Audio Recording Not Working
+**Problem**: Recording fails to start
 
-**Error: "Failed to access microphone"**
-- Grant microphone permissions in browser
-- Check browser console for specific error
-- Try refreshing the page
-- Chrome/Edge: Settings → Privacy and security → Site Settings → Microphone
+- **Solution**: Ensure you're using HTTPS (or localhost). Some browsers require secure context for MediaRecorder API.
 
-### Claude API Errors
+### Database Migration Issues
 
-**Error: `401 Unauthorized`**
-- Verify your CLAUDE_API_KEY in backend/.env
-- Check you have API credits in Anthropic Console
+**Problem**: `alembic.util.exc.CommandError: Can't locate revision`
 
-**Error: Rate limit**
-- Claude API has rate limits
-- Wait a few minutes and try again
+- **Solution**: Delete the `alembic/versions` directory and run migrations again, or reset your database
 
-### CORS Errors
+### Whisper Model Download
 
-**Error: `No 'Access-Control-Allow-Origin' header`**
-- Ensure backend is running
-- Check CORS_ORIGINS in backend/.env includes "http://localhost:5173"
-- Restart backend after changing .env
+**First time running transcription may be slow** - faster-whisper downloads the model (~150MB for base.en) on first use. Subsequent transcriptions will be much faster.
 
 ## Next Steps
 
-Once everything is working:
+Now that InterviewIQ is running:
 
-1. ✅ Try uploading different job descriptions
-2. ✅ Practice answering multiple questions
-3. ✅ Review your progress and improvement
-4. ✅ Check the implementation guide for customization options
+1. **Explore the Features**: Try uploading different job descriptions and see how the questions change
+2. **Practice Multiple Times**: Record different answers to the same question and compare your scores
+3. **Review Feedback**: Pay attention to the specific feedback in each category to improve your responses
+4. **Check the History**: View your past attempts to track your progress over time
+
+## Development Tips
+
+### Database Reset
+
+If you need to reset your database:
+
+```bash
+cd backend
+alembic downgrade base
+alembic upgrade head
+```
+
+### View Database
+
+To inspect your database directly:
+
+```bash
+# Using psql
+psql interview_prep
+
+# Or use a GUI tool like pgAdmin or DBeaver
+```
+
+### Hot Reload
+
+Both backend and frontend support hot reload:
+
+- **Backend**: Automatically reloads when you save Python files (if using `--reload` flag)
+- **Frontend**: Next.js dev server automatically reloads on file changes
 
 ## Getting Help
 
-If you encounter issues:
-
-1. Check the error messages in terminal/browser console
-2. Review [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md) for detailed setup
-3. Check [PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md) for architecture overview
-4. Verify all prerequisites are installed correctly
-
-## API Documentation
-
-Once backend is running, view interactive API docs at:
-- **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
-
-## Sample Job Description
-
-Don't have a job description PDF? Try these:
-
-1. **Find a job posting** on LinkedIn, Indeed, or company career pages
-2. **Save as PDF**: Most browsers have "Print to PDF" option
-3. **Or use a text file**: Create a .txt file with job requirements and save as PDF
-
-Example job description content:
-```
-Senior Software Engineer
-Company: Tech Startup Inc.
-
-We are looking for an experienced software engineer to join our team.
-
-Requirements:
-- 5+ years of experience in software development
-- Proficiency in Python, JavaScript, or Go
-- Experience with cloud platforms (AWS, GCP, Azure)
-- Strong problem-solving skills
-- Excellent communication abilities
-
-Responsibilities:
-- Design and implement scalable systems
-- Collaborate with cross-functional teams
-- Mentor junior developers
-- Participate in code reviews
-```
-
-## Configuration Tips
-
-### Using GPU for faster transcription
-
-If you have an NVIDIA GPU, edit backend/.env:
-
-```env
-WHISPER_DEVICE=cuda
-```
-
-Then install CUDA-enabled dependencies:
-```bash
-pip install faster-whisper[cuda]
-```
-
-### Increase file size limits
-
-Edit backend/.env:
-```env
-MAX_PDF_SIZE_MB=20
-MAX_AUDIO_SIZE_MB=100
-```
+- **API Documentation**: Visit <http://localhost:8000/docs> when backend is running
+- **Issues**: Check existing issues or create a new one on GitHub
+- **Main README**: See [README.md](./README.md) for architecture and feature details
 
 ---
 
-**Happy interviewing! 🎯🎙️**
+**You're all set!** Start practicing your behavioral interviews with InterviewIQ.

@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 from typing import List
 
+from app.core.constants import MAX_AUDIO_DURATION_MINUTES, MAX_AUDIO_SIZE_MB
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.job_description import JobDescription
@@ -14,7 +15,6 @@ from app.models.response_score import ResponseScore
 from app.models.user import User
 from app.schemas.response import (
     FeedbackResponse,
-    ResponseListItem,
     ResponseResponse,
     ScoresResponse,
 )
@@ -26,6 +26,9 @@ from sqlalchemy.orm import Session
 
 router = APIRouter(prefix='/api/questions', tags=['Responses'])
 logger = logging.getLogger(__name__)
+
+# Audio size limit (convert MB to bytes)
+MAX_AUDIO_SIZE = MAX_AUDIO_SIZE_MB * 1024 * 1024
 
 
 @router.post(
@@ -73,14 +76,15 @@ async def submit_response(
         .first()
     )
 
-    # Validate file size (max 50MB)
+    # Validate file size
     content = await audio_file.read()
     await audio_file.seek(0)
 
-    if len(content) > 50 * 1024 * 1024:  # 50MB
+    if len(content) > MAX_AUDIO_SIZE:
+        file_size_mb = len(content) / 1024 / 1024
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Audio file size must be less than 50MB',
+            detail=f'Audio file is too large ({file_size_mb:.1f}MB). Maximum size is {MAX_AUDIO_SIZE_MB}MB (~{MAX_AUDIO_DURATION_MINUTES} minutes).',
         )
 
     try:
@@ -121,7 +125,7 @@ async def submit_response(
         # Evaluate response using Claude
         logger.info(f'Evaluating response {response.id}')
         evaluation = claude_service.evaluate_response(
-            str(job_description.extracted_text) if job_description else '',
+            str(job_description.description_text) if job_description else '',
             str(question.question_text),
             transcript
         )

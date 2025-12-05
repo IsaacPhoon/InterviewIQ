@@ -30,12 +30,7 @@ class JobDescription(Base):
     )
     company_name = Column(String, nullable=False)
     job_title = Column(String, nullable=False)
-    file_path = Column(
-        String, nullable=True
-    )  # Now optional - for backward compatibility
-    extracted_text = Column(
-        Text, nullable=False
-    )  # Now required - stores job description text
+    description_text = Column(Text, nullable=False)
     status = Column(
         SQLEnum(JobDescriptionStatus),
         default=JobDescriptionStatus.PENDING,

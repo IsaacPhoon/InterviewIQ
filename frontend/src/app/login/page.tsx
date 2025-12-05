@@ -65,11 +65,15 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(
-        err.response?.data?.detail ||
-          "Login failed. Please check your credentials."
-      );
+    } catch (err: unknown) {
+      const errorMessage =
+        (err && typeof err === 'object' && 'response' in err &&
+         err.response && typeof err.response === 'object' && 'data' in err.response &&
+         err.response.data && typeof err.response.data === 'object' && 'detail' in err.response.data &&
+         typeof err.response.data.detail === 'string')
+          ? err.response.data.detail
+          : "Login failed. Please check your credentials.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

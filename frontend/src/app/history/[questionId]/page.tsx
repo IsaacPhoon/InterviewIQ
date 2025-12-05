@@ -14,7 +14,10 @@ function HistoryContent() {
 
   const { data: responses, isLoading } = useQuery({
     queryKey: ["responses", questionId],
-    queryFn: () => responsesAPI.list(questionId!),
+    queryFn: () => {
+      if (!questionId) throw new Error('Question ID is required');
+      return responsesAPI.list(questionId);
+    },
     enabled: !!questionId,
   });
 

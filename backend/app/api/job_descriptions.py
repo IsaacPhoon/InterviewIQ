@@ -51,8 +51,7 @@ async def create_job_description(
             user_id=current_user.id,
             company_name=job_data.company_name,
             job_title=job_data.job_title,
-            file_path=None,  
-            extracted_text=job_data.description_text,
+            description_text=job_data.description_text,
             status=JobDescriptionStatus.PENDING,
         )
 

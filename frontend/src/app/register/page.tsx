@@ -36,10 +36,15 @@ export default function RegisterPage() {
     try {
       await register(email, password);
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(
-        err.response?.data?.detail || "Registration failed. Please try again."
-      );
+    } catch (err: unknown) {
+      const errorMessage =
+        (err && typeof err === 'object' && 'response' in err &&
+         err.response && typeof err.response === 'object' && 'data' in err.response &&
+         err.response.data && typeof err.response.data === 'object' && 'detail' in err.response.data &&
+         typeof err.response.data.detail === 'string')
+          ? err.response.data.detail
+          : "Registration failed. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
